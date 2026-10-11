@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.39.0] - 2026-10-11
+
+The run shows its evidence, and it reaches the pages behind a sign-in.
+
+### Added
+- `colors.semanticEvidence.primary` records how the primary was decided: `elected` with the rule, reason, declaring tokens and runners-up, or `refused` with the candidates that lost. The terminal, the HTML report and DESIGN.md say which (#261)
+- `colors.occurrences` counts every colour per paint (fill, text, border) with summed fill area and the declaring custom property; summed across a crawl (#263, #267)
+- `meta.context` records the browser context the main pass was measured under; drift warns when two snapshots differ in a rendering dial. `--header` repeats (#262)
+- A crawl tags every merged value with `pageCount` and `scope` (site, section, page) and carries `coverage`: a 0-100 agreement score, per-family means and the page-local outliers. Terminal and HTML show it (#264)
+- `--cookie-file` (JSON cookies, Playwright storageState with a sessionStorage block of our own, Netscape cookies.txt), `--basic-auth`, and `--login` with `--save-storage-state` for a one-off sign-in whose session later runs and CI reuse; `meta.sessionWarnings` reports a lapsed or rejected session (#265)
+- `--tokens` checks every rendered colour, radius and font size against a W3C Design Tokens file; `--max-off-token` gates on the count, `--tokens-report` writes a plain-table Markdown page, `--annotations github|azure` prints CI log commands for off-token values and drift (#270)
+- `--no-headed-fallback` keeps a failed navigation from opening a visible browser, for batch runs (#269)
+- The HTML report states the share of the page a framework renders (#258)
+- Drift compares `frameworks` and `iconSystem` as a `tech` category: a technology added or removed, or a major version, raises the score; a minor or patch version is listed only. Skipped unless both snapshots are 1.18.0 or later from the same CLI version (#259)
+- `colors.cssVariables` entries carry `scope` (`root` or `body`) and the map is complete: alias tokens and dark-mode values keep their names, and `palette.tokens` names every colour merged into an entry (#260)
+- The MCP server is published to the MCP Registry with each release (#268)
+
+### Fixed
+- Off-grid spacing findings never fired because sizes arrive as strings; DTCG and DESIGN.md read letter spacing from the field the extractor writes; DESIGN.md names heading tokens by level; the HTML report keeps role labels, grades contrast by text size and draws inputs from their default state; a button bordered on one side is kept; the palette `role` is read after the usage cap (#267)
+- A dark-mode pass that refused a primary no longer overwrites the light pass's evidence; a crawl's evidence follows the page that supplied the value; a typography style counts a page once however many contexts carry it (#267)
+
+### Changed
+- Playwright 1.63.0, eslint 10.10.0, typescript-eslint 8.70.0 (#266)
+
+### Upgrading
+Output contract 1.18.0 to 1.19.0, additive. Measured against a same-day 0.38.0 control over 175 corpus sites: 158 identical, three primaries moved, two of them bot walls and one a site that moves between control days too. The palette `role` of a colour seen under three times reads `supporting` where it read `accent`; drift weights the two differently, so a baseline from 0.38.0 may score a small move on such colours once. Nothing else in the drift engine reads the new fields.
+
 ## [0.38.0] - 2026-10-03
 
 Detection now names what builds the page, with versions.

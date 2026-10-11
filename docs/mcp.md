@@ -3,7 +3,7 @@
 Dembrandt runs as a Model Context Protocol server, so an agent can call extraction and analysis as tools. It is listed in the [MCP Registry](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.dembrandt/dembrandt) as `io.github.dembrandt/dembrandt`.
 
 [![Add to Cursor](https://cursor.com/deeplink/mcp-install-dark.svg)](cursor://anysphere.cursor-deeplink/mcp/install?name=dembrandt&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsImRlbWJyYW5kdCIsIm1jcCJdfQ==)
-[![Install in VS Code](https://img.shields.io/badge/VS_Code-Install_Server-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=dembrandt&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22dembrandt%22%2C%22mcp%22%5D%7D)
+[![Install in VS Code](https://img.shields.io/badge/VS_Code-Install_Server-0098FF?style=for-the-badge&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=dembrandt&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22dembrandt%22%2C%22mcp%22%5D%7D)
 
 ## Install
 
@@ -26,7 +26,15 @@ Claude Desktop, Cursor, Windsurf and any client that reads a JSON config:
 }
 ```
 
-Claude Desktop: Settings, Developer, Edit Config, paste the block inside `mcpServers`, restart. Cursor and Windsurf: `.mcp.json` at the repo root. Claude Code can also take the skills repo as a plugin, which registers this server alongside 45 UX skills: `/plugin marketplace add dembrandt/dembrandt-skills`.
+Claude Desktop: Settings, Developer, Edit Config, paste the block inside `mcpServers`, restart. Cursor and Windsurf: `.mcp.json` at the repo root. VS Code and Copilot: `.vscode/mcp.json` with the same server under `servers`.
+
+Codex:
+
+```bash
+codex mcp add dembrandt -- npx -y dembrandt mcp
+```
+
+The server runs on the machine that runs the agent. Web agents without a local process (ChatGPT, Perplexity, Claude.ai, Lovable, Figma Make) cannot connect to it. Claude Code can also take the skills repo as a plugin, which registers this server alongside 45 UX skills: `/plugin marketplace add dembrandt/dembrandt-skills`.
 
 ## Environment
 

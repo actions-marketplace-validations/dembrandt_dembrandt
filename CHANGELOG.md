@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.39.1] - 2026-10-11
+
+Two findings from the first pipeline run of the token check.
+
+### Fixed
+- `--tokens` matched font sizes against radius tokens when the file had no font-size tokens. Dimension tokens now carry a kind from their type or name: font sizes match only font-size tokens, radii only radius tokens, and the report counts the tokens of each kind and says when there are none (#273)
+- `--login` with a piped stdin fell through to the sign-in page and saved nothing. It now exits 2 before the browser opens and names the reuse path: sign in once in a terminal with `--save-storage-state`, then `--cookie-file` (#273)
+
+### Upgrading
+Output contract unchanged. `tokenConformance.categories.*` gains `tokens` and `tokenConformance.tokens` splits dimensions into `radius`, `fontSize` and `dimension`; both additive, nothing else reads them.
+
 ## [0.39.0] - 2026-10-11
 
 The run shows its evidence, and it reaches the pages behind a sign-in.

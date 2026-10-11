@@ -8,13 +8,13 @@
     "source": "github"
   },
   "websiteUrl": "https://dembrandt.com",
-  "version": "0.39.0",
+  "version": "0.39.1",
   "packages": [
     {
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "dembrandt",
-      "version": "0.39.0",
+      "version": "0.39.1",
       "runtimeHint": "npx",
       "runtimeArguments": [{ "type": "positional", "value": "-y" }],
       "packageArguments": [{ "type": "positional", "value": "mcp" }],

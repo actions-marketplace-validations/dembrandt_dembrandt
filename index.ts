@@ -22,7 +22,9 @@ import { generateTailwindTheme } from "./lib/formatters/tailwind.js";
 import { generateShadcnTheme } from "./lib/formatters/shadcn.js";
 import { generateHtmlReport } from "./lib/formatters/html.js";
 import { resolveCompare } from "./lib/compare.js";
-import { emitDriftAnnotations } from "./lib/ci-annotations.js";
+import { emitDriftAnnotations, conformanceAnnotations, detectCiSystem } from "./lib/ci-annotations.js";
+import { checkConformance, commitFromEnv, parseTokenFile } from "./lib/token-conformance.js";
+import { generateConformanceMd } from "./lib/formatters/conformance-md.js";
 import { parseSitemap, computePagesRequested } from "./lib/discovery.js";
 import { mergeResults } from "./lib/merger.js";
 import { writeFileSync, mkdirSync, readFileSync } from "fs";
@@ -79,6 +81,10 @@ program
   .option("--shadcn [path]", "Write a shadcn/ui theme block, observed slots only (default: output/<domain>/shadcn.css)")
   .option("--html [path]", "Write a self-contained HTML report (default: output/<domain>/<timestamp>.html)")
   .option("--compare <baseline>", "Drift-compare against a baseline JSON file. Exits 1 on drift, 2 if the baseline cannot be read.")
+  .option("--tokens <path>", "Check every rendered colour, radius and font size against a W3C Design Tokens file; repeat for several files (light and dark sets, several packages)", (v: string, all: string[] = []) => [...all, v])
+  .option("--max-off-token <n>", "With --tokens: exit 1 when more than N rendered values match no token", (v: string) => { const n = Number(v); if (!Number.isInteger(n) || n < 0) throw new InvalidArgumentError("--max-off-token takes a whole number"); return n; })
+  .option("--tokens-report <path>", "With --tokens: write the off-token summary as a Markdown page (plain tables, wiki-ready)")
+  .option("--annotations <system>", "Print CI annotations for off-token values and drift: github or azure (default: detected from the runner)", (v: string) => { if (v !== "github" && v !== "azure") throw new InvalidArgumentError("--annotations takes github or azure"); return v; })
   .option("--approve", "With --compare <file>: accept the current extraction as the new baseline by overwriting that local file, and pass instead of failing.")
   .option("--no-sandbox", "Disable browser sandbox (needed for Docker/CI)")
   .option("--no-headed-fallback", "Fail instead of retrying a failed navigation in a visible browser (also DEMBRANDT_NO_HEADED_FALLBACK=1); for batch and unattended runs")
@@ -694,13 +700,41 @@ program
           // via workflow-command annotations (DEM-83). No-op locally. Gated on
           // the gate actually failing, so an --approve'd local baseline (which
           // passes despite a drift report) emits nothing.
-          if (process.exitCode === EXIT.DRIFT) emitDriftAnnotations(report);
+          if (process.exitCode === EXIT.DRIFT && !opts.jsonOnly) emitDriftAnnotations(report, undefined, undefined, opts.annotations);
         } catch (err) {
           // A gate that cannot evaluate its baseline must not pass: exit RUNTIME
           // ("check broke, investigate") so CI distinguishes this from stable (0)
           // and from real drift (1). See lib/exit-codes.ts.
           console.log(color.warning(`! Could not compare against baseline: ${err.message}`));
           process.exitCode = EXIT.RUNTIME;
+        }
+      }
+
+      if (opts.tokens?.length) {
+        try {
+          const tokens = opts.tokens.flatMap((p: string) => parseTokenFile(readFileSync(resolve(process.cwd(), p), "utf-8"), p));
+          const report = checkConformance(result, tokens, { commit: commitFromEnv() });
+          result.tokenConformance = report;
+          const over = opts.maxOffToken !== undefined && report.offToken.length > opts.maxOffToken;
+          const verdict = over
+            ? color.warning(`${report.offToken.length} off-token values, limit ${opts.maxOffToken}`)
+            : color.accent(`${report.offToken.length} off-token values`);
+          savedNotices.push(chalk.dim(`⟂ Tokens: ${verdict} across ${report.categories.color.checked} colours, ${report.categories.radius.checked} radii, ${report.categories.fontSize.checked} font sizes`));
+          for (const row of report.offToken.slice(0, 5)) {
+            savedNotices.push(chalk.dim(`  ${row.category} ${row.value} ×${row.count}${row.nearest ? ` nearest ${row.nearest.name} (${row.nearest.value})` : ""}`));
+          }
+          if (opts.tokensReport) {
+            const mdPath = resolve(process.cwd(), opts.tokensReport);
+            mkdirSync(dirname(mdPath), { recursive: true });
+            writeFileSync(mdPath, generateConformanceMd(report, { version, maxOffToken: opts.maxOffToken }));
+            savedNotices.push(chalk.dim(`💾 Token report saved (--tokens-report): ${color.info(opts.tokensReport)}`));
+          }
+          if (over && Number(process.exitCode ?? 0) < EXIT.DRIFT) process.exitCode = EXIT.DRIFT;
+          const system = opts.annotations ?? detectCiSystem();
+          if (system && !opts.jsonOnly) for (const line of conformanceAnnotations(report, system, opts.maxOffToken)) process.stdout.write(`${line}\n`);
+        } catch (err) {
+          console.log(color.warning(`! Could not check tokens: ${err.message}`));
+          if (Number(process.exitCode ?? 0) < EXIT.RUNTIME) process.exitCode = EXIT.RUNTIME;
         }
       }
 
@@ -860,7 +894,7 @@ program
 const OPTION_GROUPS = [
   ["Extraction", ["--dark-mode", "--mobile", "--slow", "--crawl", "--sitemap", "--browser"]],
   ["Output & export", ["--json-only", "--save-output", "--dtcg", "--brand-guide", "--design-md", "--tailwind", "--shadcn", "--html", "--screenshot", "--raw-colors"]],
-  ["Analysis", ["--wcag", "--compare", "--approve"]],
+  ["Analysis", ["--wcag", "--compare", "--approve", "--tokens", "--max-off-token", "--tokens-report", "--annotations"]],
   ["Network & auth", ["--cookie", "--cookie-file", "--basic-auth", "--login", "--save-storage-state", "--header", "--user-agent", "--locale", "--timezone", "--accept-language", "--screen-size"]],
   ["Anti-detection", ["--stealth", "--no-sandbox", "--no-headed-fallback"]],
 ];

@@ -56,6 +56,9 @@
  *          control days as well. meta.flags gains `session`, `basicAuth` and
  *          `login` as booleans only, never the credential; meta.sessionWarnings
  *          lists a saved session that had lapsed or was redirected to sign in.
+ *          `tokenConformance` appears when a run is
+ *          checked against a token file (--tokens): the off-token values with
+ *          their nearest token and distance, counts per category, the commit.
  *  1.18.0 — frameworks entries gain `category`, `version` and `coverage` (the
  *          share of the page under that framework's mount points), iconSystem
  *          entries gain `version`. Additive: 1.17.x consumers ignore them.

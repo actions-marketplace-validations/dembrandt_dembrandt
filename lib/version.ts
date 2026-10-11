@@ -64,6 +64,11 @@
  *          or a major version, raises the score; a minor or patch version is
  *          listed and scores nothing. Skipped unless both snapshots are
  *          1.18.0 or later and from the same CLI version.
+ *          colors.cssVariables entries gain `scope` (`root` or `body`) and
+ *          the map is complete: it no longer drops a variable within deltaE 15
+ *          of a palette entry or keeps one name per value, so alias tokens and
+ *          dark-mode values keep their names; palette.tokens carries every
+ *          name merged into an entry. Palette and semantic values unmoved.
  *  1.18.0 — frameworks entries gain `category`, `version` and `coverage` (the
  *          share of the page under that framework's mount points), iconSystem
  *          entries gain `version`. Additive: 1.17.x consumers ignore them.

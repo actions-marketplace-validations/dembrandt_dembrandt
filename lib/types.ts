@@ -57,6 +57,8 @@ export interface CssVariable {
   hex?: string;
   lch?: string;
   oklch?: string;
+  /** Where the value was read: `body` only when body overrides or adds to :root. */
+  scope?: 'root' | 'body';
 }
 
 export interface SemanticEvidence {
@@ -111,7 +113,8 @@ export interface Colors {
   detected?: DetectedColor[];
   occurrences?: ColorOccurrence[];
   /**
-   * CSS custom properties. Older extractions carry a bare colour string; current
+   * Every declared colour custom property on :root and body, framework and
+   * status noise removed. Older extractions carry a bare colour string; current
    * ones carry a CssVariable object, so consumers must handle both.
    */
   cssVariables: Record<string, string | CssVariable>;

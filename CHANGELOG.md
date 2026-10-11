@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.39.2] - 2026-10-11
+
+Radii named without the word radius match again.
+
+### Fixed
+- 0.39.1 matched radii only against tokens whose name says radius, rounded or corner, so a file naming them `shape.md` or `border.sm` lost every radius match. Unnamed dimensions now stand in for a kind that has no tokens of its own, never for one that has (#274)
+
+### Upgrading
+Output contract unchanged.
+
 ## [0.39.1] - 2026-10-11
 
 Two findings from the first pipeline run of the token check.
